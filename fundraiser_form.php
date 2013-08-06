@@ -118,17 +118,16 @@
 
 	function after_fundraiser_create_local(r){
 
-		/* NEW */
-		// find active tab menu item, remove active class, add to last item (last step)
-		jQuery('ul.menu-create_campaign li').removeClass('active').eq(-1).addClass('active');
-		// hide the form section
-		jQuery('.create-campaign-form').hide();
-		// clear the content area, remove the current step class, add last step class
-		jQuery('#create-campaign-content').empty().removeClass('commit-to-support').removeClass('content').addClass('spread-the-word');
-		jQuery('.spread-the-word').append(' \
-				<header><h1><b>Congratulations</b> - your custom campaign page has been created! now, lets spread the word.</h1></header> \
-				<a class="visit-campaign" target="_blank" href="' + r.url + '">VISIT MY CAMPAIGN</a> \
-		');
+		// data_cf_city = $('input');
+		// data_cf = {}
+		// $.ajax({
+		// url: '<?php echo DNTLYSEED_PLUGIN_URL; ?>',
+		// cache: false,
+		// type: 'POST',
+		// data: 
+		// });
+
+		console.log(r);
 
 	}
 
@@ -199,15 +198,6 @@
 
 	jQuery(document).ready(function($) {
 		intialize_fundraiser_form();
-		$('.goal-num').click(function(e){
-			e.preventDefault();
-			num  			= $(this).attr('name');
-			num_field = $('#goal-number');
-
-			num_field.val(num);
-			$(this).siblings().removeClass('active-goal-num');
-			$(this).addClass('active-goal-num');
-		});
 	});
 
 </script>
@@ -220,46 +210,27 @@
 
 <div class="fundraiser_form_wrapper">
 	<form action="" class="" id="dntly_fundraiser">
-		<fieldset class="fundraiser_signin">
+		<fieldset class="">
 
-			<div class="left">
-				<label for="">Campaign Title *</label>
-				<input type="text" required name="title" class="input-medium required">
-			</div>
-
-			<div class="left">
-				<label for="">Your Email Address *</label>
-				<input type="email" required name="email" class="input-medium required">
-			</div>
-
-		</fieldset>
-
-		<fieldset class="fundraiser_goal">
-			<?php print $fundraiser_campaign_select ?>
-			
-			<div class="left">
-				<label for="">Fundraising Goal *</label>
+	
+			<label for="">Campaign Title *</label>
+			<input type="text" required name="title" class="input-medium required">
 				
-				<div class="goal-fields">
-					<a class="goal-num" name="250" href="javascript:;">$250</a>
-					<a class="goal-num" name="500" href="javascript:;">$500</a>
-					<a class="goal-num" name="1000" href="javascript:;">$1,000</a>
-					<a class="goal-num" name="2500" href="javascript:;">$2,500</a>
-					<a class="goal-num" name="5000" href="javascript:;">$5,000</a>
-					<a class="goal-num" name="10000" href="javascript:;">$10,000</a>
-
-					<input type="number" id="goal-number" required name="goal" class="input-medium required" maxlength="7" placeholder="OTHER: "/>
-				</div>
-				
-				<div class="left" style="display:none">
-					<label for="">Description </label>
-					<textarea name="description" required>Fundraiser/Campaign Content goes here.</textarea>
-				</div>
+			<label for="">Your Email Address *</label>
+			<input type="email" required name="email" class="input-medium required">
 			
-			</div>
-		</fieldset>
+			<label for="">City *</label>
+			<input type="text" required name="city" class="input-medium required">
+
+
+		<?php print $fundraiser_campaign_select ?>
+
+			<input type="number" id="goal-number" style="display:none" required name="goal" class="input-medium required" maxlength="7" placeholder="OTHER: "/>
+
+			<label for="">Description </label>
+			<textarea name="description" required>Fundraiser/Campaign Content goes here.</textarea>
+
   
-		<fieldset class="fundraiser_footer">
 
 			<div id="fcm"></div>
 
