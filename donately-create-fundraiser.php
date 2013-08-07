@@ -18,14 +18,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 include 'dntly_fields.php';
 
-define('DNTLYSEED_PLUGIN_URL', plugin_dir_url( __FILE__ ));
-define('DNTLYSEED_PLUGIN_PATH', __DIR__ );
-define('DNTLYSEED_PLUGIN_BASENAME', plugin_basename(__FILE__));
+define('DNTLYPLUGIN_URL', plugin_dir_url( __FILE__ ));
+define('DNTLYPLUGIN_PATH', __DIR__ );
+define('DNTLYPLUGIN_BASENAME', plugin_basename(__FILE__));
 
 /* FRONT END STYLES / SCRIPTS
 ================================================== */
 function dntly_cf_front_scripts_styles(){
-	//wp_register_script( 'dntlyseed-script', DNTLYSEED_PLUGIN_URL . 'donately-seed.js', array('jquery') );
+	//wp_register_script( 'dntlyseed-script', DNTLYPLUGIN_URL . 'donately-seed.js', array('jquery') );
 	//wp_localize_script( 'dntlyseed-script', 'dntly_cf_ajax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 	//wp_enqueue_script( 'dntlyseed-script' );
 }
@@ -47,7 +47,7 @@ function dntly_cf_build_fundraiser_form( $atts ){
   $account = $account != '' ? sanitize_text_field($account) : null;
   $campaign_id = $cid != '' ? sanitize_text_field($cid) : null;
   $dntly_options = get_option('dntly_options');
-  include_once( DNTLYSEED_PLUGIN_PATH . '/fundraiser_form.php');
+  include_once( DNTLYPLUGIN_PATH . '/fundraiser_form.php');
 
 }
 add_shortcode( 'dntly_fundraiser_form', 'dntly_cf_build_fundraiser_form' );
@@ -95,8 +95,8 @@ function dntly_cf_weekly_goal(){
 
   /* DNTLYSEED OPTIONS ARRAY
   ================================================== */
-  global $DNTLYSEED_OPTS;
-  $DNTLYSEED_OPTS = array(
+  global $DNTLYOPTS;
+  $DNTLYOPTS = array(
   	'total_amount' 				=> $total_amount,
   	'total_amount_fmt'  	=> money_format('%.2n', $total_amount),
   	// times & dates
@@ -247,7 +247,7 @@ function dntly_cf_weekly_goal(){
  
   // INIT 
   /////////////////////////////////////////////////////////
-  dntly_cf_update_options( $DNTLYSEED_OPTS );
+  dntly_cf_update_options( $DNTLYOPTS );
   
                
 
@@ -270,18 +270,18 @@ function dntly_cf_weekly_goal(){
     }
 
     function dntly_cf_weekly_goal_total(){
-      global $DNTLYSEED_OPTS;
+      global $DNTLYOPTS;
 
-      $total_amount       = $DNTLYSEED_OPTS['total_amount'];
+      $total_amount       = $DNTLYOPTS['total_amount'];
       $total_amount_fmt   = format_sum($total_amount);
 
       return $total_amount_fmt;
     }    
 
     function dntly_cf_weekly_goal_percentage() {
-      global $DNTLYSEED_OPTS;
+      global $DNTLYOPTS;
 
-      $amt_total          = $DNTLYSEED_OPTS['total_amount'];
+      $amt_total          = $DNTLYOPTS['total_amount'];
       $amt_sum            = get_the_weekly_goal();
       $amt_formatted      = format_sum($amt_sum);
       $amt_percentage     = percent_of_weekly( $amt_sum, $amt_total );
@@ -340,6 +340,22 @@ function dntly_cf_weekly_goal(){
     print_r($dntly_vars);
     print '</pre>';
   }
+
+
+
+  /* AJAX FUNCTION
+  ================================================== */
+  add_action('wp_ajax_dntly_cf_update_post_meta', 'dntly_cf_update_post_meta');
+  function dntly_cf_update_post_meta() {
+    $data = ( isset($_POST['data']) ? $_POST['data'] : null);
+    update_post_meta( $post_id, '_dntly_cf_data', $data );
+
+    return $data;
+  }
+
+
+
+
 
 
 }

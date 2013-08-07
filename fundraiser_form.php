@@ -1,4 +1,5 @@
 <?php
+	wp_head();
 
 	if( !defined('DNTLY_VERSION') ){
 		print "Donately Plugin must be activated.";
@@ -116,20 +117,35 @@
   	jQuery('#fcm').find('.dntly_submit_spinner').remove();
   }
 
+
+
 	function after_fundraiser_create_local(r){
 
-		// data_cf_city = $('input');
-		// data_cf = {}
-		// $.ajax({
-		// url: '<?php echo DNTLYSEED_PLUGIN_URL; ?>',
-		// cache: false,
-		// type: 'POST',
-		// data: 
-		// });
+		data_cf_city = jQuery("input[name='city']").val();
+		dntly_cf_data = data_cf_city;
 
-		console.log(r);
+		console.log(dntly_cf_data);
+		console.log(dntly_ajax.ajaxurl);
+
+		jQuery.ajax({
+			url: dntly_ajax.ajaxurl,
+			cache: false,
+			type: 'POST',
+			data: {
+        'action': 'dntly_cf_update_post_meta',
+        'data':   dntly_cf_data
+	    },
+	    'error'      : function(response) { 
+	    	console.log(response) 
+
+	    },
+	    'success'    : function(response) { console.log(response) }
+		});
+	    
 
 	}
+
+
 
 	function after_fundraiser_create_remote(r){
 		data = {
@@ -214,18 +230,17 @@
 
 	
 			<label for="">Campaign Title *</label>
-			<input type="text" required name="title" class="input-medium required">
+			<input type="text" required name="title" class="input-medium required"><br/>
 				
 			<label for="">Your Email Address *</label>
-			<input type="email" required name="email" class="input-medium required">
+			<input type="email" required name="email" class="input-medium required"><br/>
 			
 			<label for="">City *</label>
-			<input type="text" required name="city" class="input-medium required">
+			<input type="text" required name="city" class="input-medium required"><br/>
 
+			<?php print $fundraiser_campaign_select ?>
 
-		<?php print $fundraiser_campaign_select ?>
-
-			<input type="number" id="goal-number" style="display:none" required name="goal" class="input-medium required" maxlength="7" placeholder="OTHER: "/>
+			<input type="number" id="goal-number" style="display:none" required name="goal" class="input-medium required" maxlength="7" value="1"/>
 
 			<label for="">Description </label>
 			<textarea name="description" required>Fundraiser/Campaign Content goes here.</textarea>
