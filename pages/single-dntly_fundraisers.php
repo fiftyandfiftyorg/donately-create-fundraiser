@@ -19,9 +19,16 @@
         );
         $campaigns = new WP_Query($campaigns_args);
         //if( have_posts() ) : while ( have_posts() ) : the_post();
-        if( $campaigns->have_posts() ) : while( $campaigns->have_posts() ) : $campaigns->the_post();
+        // if( $campaigns->have_posts() ) : while( $campaigns->have_posts() ) : $campaigns->the_post();
       ?>
 
+
+      <pre>
+        <?php 
+          $post_meta = get_post_meta($post->ID);
+          var_dump($post_meta);
+        ?>
+      </pre>
   
  <?php endwhile; endif; wp_reset_postdata(); ?>
 

@@ -1,11 +1,21 @@
 <?php
 	wp_head();
 
+  /* ====================================================================== */ 
+  /*                                                                        */
+  /*                              PHP (DNTLY API)                           */
+  /*                                                                        */
+  /* ====================================================================== */
+
+  /* DNTLY CORE PLUGIN ACTIVATION CHECK
+  ================================================== */
 	if( !defined('DNTLY_VERSION') ){
 		print "Donately Plugin must be activated.";
 		die();
 	}
 
+  /* DNTLY FUNDRAISER API FUNCTIONS
+  ================================================== */
 	$dntly = new DNTLY_API;
 	$create_user_and_fundraiser_url = $dntly->build_url("create_fundraiser");
 
@@ -26,10 +36,21 @@
 		}
 		$fundraiser_campaign_select = "<div class='left'><label for=''>Select a Campaign*</label><select name='campaign' class='input-medium required'>" . $dntly_account_options . "</select></div>";					
 	}
-
 ?>
+
+
+
+<?php 
+/* ====================================================================== */ 
+/*                                                                        */
+/*                               JAVASCRIPT                               */
+/*                                                                        */
+/* ====================================================================== */ ?>
+
 <script type="text/javascript">
 	
+  /* INIT VARS
+  ================================================== */
 	var fundraiser_form,
 		email, 
 		password,
@@ -38,15 +59,26 @@
 		campaign,
 		goal;
 
+  /* IE COMPATIBILITY
+  ================================================== */
   function isIE8orIE9() {
     return !!( ( (/msie 8./i).test(navigator.appVersion) || (/msie 9./i).test(navigator.appVersion)  ) && !(/opera/i).test(navigator.userAgent) && window.ActiveXObject && XDomainRequest && !window.msPerformance );
   }
 
+  /* MAKE AJAX REQUEST
+  ================================================== */
 	function make_ajax_request(url, data, request_type){
+		// console.log('make_ajax_request');
 		var result;
 		if ( isIE8orIE9() ) {
       var xdr = new XDomainRequest();
+      xdr.timeout = 10000;
       xdr.open("post", url);
+      xdr.onerror = function() {
+          handle_response(response.error);
+      }
+      xdr.ontimeout = function() { /* only needed for IE9 support */ }
+      xdr.onprogress = function() { /* only needed for IE9 support */ }
       xdr.onload = function() {
         var dom = new ActiveXObject("Microsoft.XMLDOM");
         dom.async = false;
@@ -69,6 +101,8 @@
 		}
 	}
 
+  /* DISPLAY ERRORS
+  ================================================== */
 	function display_errors(message){
 		if( typeof(message) != 'string' ){
 			alert("Error\n\nConnection Error");
@@ -78,7 +112,11 @@
 		}
 	}
 
+  /* HANDLE RESPONSE
+  ================================================== */
 	function handle_response(response, type, error){
+		// console.log('handle_response');
+		// console.log(response, type, error);
 		if(type === undefined){type = 'user_and_fundraiser';}
 		if(error === undefined){error = false;}
 		try{
@@ -93,7 +131,7 @@
 			display_errors(r.error.message);
 		}
 		else{
-			if( type == 'fundraiser_create_local' ){
+			if( type == 'fundraiser_create_local_extended' ){
 				return after_fundraiser_create_local(r);
 			}
 			else{
@@ -102,59 +140,25 @@
 		}
 	}
 
+
+  /* LOADING SPINNER
+  ================================================== */
   function dntly_spinner() {
 		var opts = {lines: 8,length: 5,width: 3,radius: 6,corners: 1,rotate: 0,direction: 1,color: '#000',speed: 1.2,trail: 40,shadow: false,hwaccel: false,className: 'dntly_submit_spinner',zIndex: 2e9,top: 'auto',left: 'auto'};
 		var spinner = new Spinner(opts).spin();
 		return spinner;
   }
-
   function show_spinner(){
   	var s = dntly_spinner();
   	jQuery('#fcm').append(s.el);
   }
-
   function hide_spinner(){
   	jQuery('#fcm').find('.dntly_submit_spinner').remove();
   }
 
 
-
-	function after_fundraiser_create_local(r){
-
-		data_cf_city = jQuery("input[name='city']").val();
-		dntly_cf_data = data_cf_city;
-
-		console.log(dntly_cf_data);
-		console.log(dntly_ajax.ajaxurl);
-
-		jQuery.ajax({
-			url: dntly_ajax.ajaxurl,
-			cache: false,
-			type: 'POST',
-			data: {
-        'action': 'dntly_cf_update_post_meta',
-        'data':   dntly_cf_data
-	    },
-	    'error'      : function(response) { 
-	    	console.log(response) 
-
-	    },
-	    'success'    : function(response) { console.log(response) }
-		});
-	    
-
-	}
-
-
-
-	function after_fundraiser_create_remote(r){
-		data = {
-			'action'	: 'dntly_create_fundraiser',
-			'dntly_result'  : r
-		};
-		make_ajax_request(dntly_ajax.ajaxurl, data, 'fundraiser_create_local');
-	}
-
+  /* [1] CREATE USER AND FUNDRAISER
+  ================================================== */
 	function create_user_and_fundraiser(){
 			var goal_clean = goal.replace("$", ""); goal_clean = goal_clean.replace(",", "");
 			if (goal_clean.indexOf(".") >= 0){
@@ -173,6 +177,37 @@
 			make_ajax_request(user_and_fundraiser_url, data, 'user_and_fundraiser');
 	}
 
+
+  /* [2] AFTER FUNDRAISER CREATE REMOTE
+  ================================================== */
+  function after_fundraiser_create_remote(r){
+
+    data_cf_post_id = jQuery("input#post_id_hidden").val(),
+    data_cf_nonce   = jQuery("input#fundraiser_nonce").val(),
+    data_cf_city    = jQuery("input[name='city']").val();
+    
+    data = {
+      'action'        : 'dntly_create_fundraiser_extended',
+      'dntly_result'  : r,
+      'postID'        : data_cf_post_id,
+      'city'          : data_cf_city
+    }
+
+    make_ajax_request(dntly_ajax.ajaxurl, data, 'fundraiser_create_local_extended');
+
+  }
+
+  /* [3] AFTER FUNDRAISER CREATE LOCAL (DOM MANIP)
+  ================================================== */
+  function after_fundraiser_create_local(r){
+
+
+    alert(r.url);
+
+  }
+
+  /* GET FUNDRAISER DATA
+  ================================================== */
 	function get_fundraiser_data(){
 		email           = jQuery("input[name=email]", fundraiser_form).val();
 		title           = jQuery("input[name=title]", fundraiser_form).val();
@@ -198,6 +233,8 @@
 		return true;
 	}
 
+  /* INITIALIZE FUNDRAISER FORM
+  ================================================== */
 	function intialize_fundraiser_form(){
 		user_and_fundraiser_url   = "<?php print $create_user_and_fundraiser_url ?>";
 		fundraiser_form     			= jQuery('#dntly_fundraiser');
@@ -211,24 +248,42 @@
 			return false;
 		});
 	}
-
+  // DOM READY INIT
 	jQuery(document).ready(function($) {
 		intialize_fundraiser_form();
 	});
 
 </script>
 
+
+
+<?php 
+/* ====================================================================== */ 
+/*                                                                        */
+/*                                HTML                                    */
+/*                                                                        */
+/* ====================================================================== */ ?>
+
+
+<?php /* INLINE STYLES
+================================================== */ ?>
 <style type="text/css">
 	#fundraiser_success {
 		display: none;
 	}
 </style>
 
+
+<?php /* FUNDRAISER FORM HTML
+================================================== */ ?>
 <div class="fundraiser_form_wrapper">
 	<form action="" class="" id="dntly_fundraiser">
 		<fieldset class="">
+			<input type="hidden" style="display:none;" name="post_id_hidden" id="post_id_hidden" value="<?php global $post; echo $post->ID; ?>">
+			<!-- <input type="hidden" style="display:none;" name="post_id_hidden" id="post_id_hidden" value="<?php // global $post; echo $post->ID; ?>"> -->
 
-	
+			 <?php wp_nonce_field('create_fundraiser','fundraiser_nonce'); ?>
+			
 			<label for="">Campaign Title *</label>
 			<input type="text" required name="title" class="input-medium required"><br/>
 				
@@ -245,7 +300,7 @@
 			<label for="">Description </label>
 			<textarea name="description" required>Fundraiser/Campaign Content goes here.</textarea>
 
-  
+ 			
 
 			<div id="fcm"></div>
 
